@@ -180,8 +180,7 @@ When analyzing honeypot credential logs, you will notice distinct trends indicat
 
 # Typical Post-Exploitation Activity (Botnets)
 
-**Tags:** #PostExploitation #Botnets #Reconnaissance #MalwareAnalysis #AntiForensics
-**Date Logged:** 2026-02-22
+
 
 ---
 
@@ -218,9 +217,6 @@ To maintain persistence and hide from system administrators, a subset of bots wi
 
 # Bot Identification & Malware Analysis
 
-> [!WARNING] Malware Handling
-> **Do NOT execute** any of the scripts or commands found in the provided samples. These are real, malicious files captured by the honeypot. Running them outside of a strictly controlled, isolated environment will compromise your machine.
-
 ---
 
 ## 1. Tracking and Attributing Botnets
@@ -244,8 +240,6 @@ You can identify the botnet family by treating these captured scripts exactly as
 
 # SSH Tunneling & Proxy Attacks
 
-**Tags:** #SSHTunneling #Pivoting #Cowrie #TrafficAnalysis #DefensiveEngineering
-**Date Logged:** 2026-02-22
 
 ---
 
