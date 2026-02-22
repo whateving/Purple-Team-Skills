@@ -215,3 +215,70 @@ Once the bot confirms the system architecture, it attempts to pull down its prim
 To maintain persistence and hide from system administrators, a subset of bots will attempt to clean up after themselves.
 * **Common Actions:** Deleting system logs in `/var/log` and disabling or clearing the `~/.bash_history` file.
 * **The Defender Advantage:** This is entirely ineffective in a honeypot. Because Cowrie logs all keystrokes and session data externally (outside the simulated environment), the attacker cannot delete the actual logs of their activity.
+
+# Bot Identification & Malware Analysis
+
+> [!WARNING] Malware Handling
+> **Do NOT execute** any of the scripts or commands found in the provided samples. These are real, malicious files captured by the honeypot. Running them outside of a strictly controlled, isolated environment will compromise your machine.
+
+---
+
+## 1. Tracking and Attributing Botnets
+
+While botnets rely heavily on automated scripts, the specific tools and methods they are programmed to use often leave unique, identifiable fingerprints. By analyzing Cowrie session logs, you can group and attribute traffic to specific botnets using the following artifacts:
+
+* **Command Sequencing:** The hardcoded, specific order of commands executed immediately after a successful login is often highly unique to a particular bot's script.
+* **Network Infrastructure:** Bots will consistently attempt to connect to the same set of hardcoded IP addresses or domains to pull down secondary payloads or communicate with their Command & Control (C2) servers.
+* **Public SSH Keys:** To maintain persistence, some bots are programmed to write their own public SSH keys into the `~/.ssh/authorized_keys` file. Because the botmaster reuses the same key across thousands of infected machines, these keys become highly recognizable Indicators of Compromise (IoCs).
+* **Unique Strings:** Less frequently, bot operators will leave identifiable comments, distinct variable names, or even taunting messages within their bash scripts.
+
+---
+
+## 2. Analyzing Dropped Payloads
+
+Because Cowrie intercepts and saves the files that bots attempt to download (typically via `wget` or `curl`), you do not just have the logs—you have the actual malware.
+
+You can identify the botnet family by treating these captured scripts exactly as you would any other malware sample. This involves safely generating file hashes, extracting readable text strings, or reverse-engineering the code to understand its core objective.
+
+<img width="722" height="112" alt="image" src="https://github.com/user-attachments/assets/acc22df5-0780-458c-83cf-3025edf087d4" />
+
+# SSH Tunneling & Proxy Attacks
+
+**Tags:** #SSHTunneling #Pivoting #Cowrie #TrafficAnalysis #DefensiveEngineering
+**Date Logged:** 2026-02-22
+
+---
+
+## 1. The Mechanics of SSH Tunneling
+
+Not all attackers want to compromise your server to steal its data or install malware. Often, they just want to use your server as a secure stepping stone to attack someone else. 
+
+They accomplish this using **SSH Tunnels** (also known as SSH Port Forwarding). 
+* **How it works:** An SSH tunnel routes network traffic between nodes through an encrypted connection.
+* **The Attacker's Benefit:** It provides a dense layer of secrecy. Because the tunnel is encrypted, third parties (and network defenders) cannot see the contents of the packets passing through it.
+* **IP Obfuscation:** Routing traffic through the compromised honeypot hides the attacker's true public IP address, functioning very much like a malicious VPN.
+
+---
+
+## 2. Common Malicious Use Cases
+
+By masking their true origin IP behind your compromised server, adversaries can facilitate several types of attacks:
+
+* **Bypassing Rate Limits:** Security tools like `fail2ban` block IPs after too many failed requests. Attackers use SSH tunnels to constantly rotate their origin IP, bypassing these blocks to continue brute-forcing other targets.
+* **SEO Boosting & Click Fraud:** Generating fake web traffic that appears to come from legitimate, distributed IP addresses.
+* **Spamming:** Sending mass spam emails without getting their own infrastructure blacklisted.
+
+---
+
+## 3. How Cowrie Handles Tunneling Data
+
+Cowrie is designed to safely capture this behavior without actually contributing to the attacker's goals.
+
+* **Safe Logging:** By default, Cowrie will record all the details of the SSH tunneling requests it receives, but it **will not forward the traffic** to its intended destination.
+* **The Intelligence Value:** This data is incredibly valuable. Because the honeypot intercepts the tunneling request, defenders can analyze the destination IPs and the payload data to discover secondary web attacks, C2 servers, or targets that might not have been caught by standard web honeypots.
+
+<img width="722" height="441" alt="image" src="https://github.com/user-attachments/assets/e497bf10-7289-438a-9781-5916bc368bcf" />
+
+
+A curated list of honeypots - https://github.com/paralax/awesome-honeypots
+Sending Cowrie output to ELK - https://docs.cowrie.org/en/latest/elk/README.html
