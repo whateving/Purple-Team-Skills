@@ -85,7 +85,8 @@ ssh root@IP
 
 ```
 
-screemshot
+<img width="723" height="206" alt="image" src="https://github.com/user-attachments/assets/b8d3770e-e8ed-48f4-885f-fefed00adc3d" />
+
 
 ---
 
@@ -106,6 +107,52 @@ Because this is a *medium-interaction* simulation and not a real operating syste
 * **Default Fingerprints:** If the defender did not customize the deployment, it will mirror a Debian 5 installation and feature a hardcoded default user account named `Phil`.
 * **Hardware Anachronisms:** Querying the hardware (such as reading `/proc/cpuinfo`) will reveal references to a very outdated CPU, which is highly suspicious for a modern cloud server.
 
-screemshot
 
-```
+# Cowrie Event Logging & Aggregation
+
+## 1. Accessing the Real System (The Logs)
+
+While the honeypot runs on the standard SSH port (22) to trap attackers, the *real* underlying system and its logs are accessible via a secondary management port.
+
+**Management Credentials:**
+* **IP Address:** `IP`
+* **Port:** `1400`
+* **Username:** `demo`
+* **Password:** `demo`
+
+> [!WARNING] SSH Host Key Conflict
+> Because you previously connected to this IP on port 22 (the honeypot), your SSH client might flag a "Remote Host Identification Has Changed" error.
+> * **Fix:** Remove the old key from your known hosts file: `ssh-keygen -R IP`
+> * **Connection Command:** `ssh demo@IP -p 1400`
+
+
+---
+
+## 2. Log Location & Analysis Tools
+
+Cowrie tracks every connection, command, and keystroke handled by the system. The logs are stored in both plain text and JSON formats.
+
+**Log Path:**
+`/home/cowrie/honeypot/var/log/cowrie`
+
+**Tools Available:**
+The system has the **`jq`** JSON parser installed to make reading the structured logs easier.
+
+`ls -l /home/cowrie/honeypot/var/log/cowrie`
+
+<img width="723" height="20" alt="image" src="https://github.com/user-attachments/assets/8b881854-7f03-4077-a1a2-847ce6b0958b" />
+
+
+---
+
+## 3. Log Aggregation Strategy
+
+For external or high-traffic honeypots, manual log parsing quickly becomes impossible due to volume. 
+
+* **The Solution:** Deploy honeypots alongside a log aggregation platform like the **ELK Stack** (Elasticsearch, Logstash, Kibana).
+* **Benefits:**
+    * **Scalability:** Handles massive amounts of data from multiple honeypot sensors.
+    * **Live Monitoring:** Dashboards allow defenders to see attacks happening in real-time rather than just analyzing them historically.
+    * **Alerting:** Can trigger immediate notifications for specific high-risk behaviors.
+
+
