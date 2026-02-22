@@ -63,3 +63,49 @@ Where a honeypot is placed dictates the type of threats it detects.
 * **Location:** Deployed directly on the open internet, outside the LAN.
 * **Purpose:** To monitor general attack trends from the wild.
 * **Significance:** Because they are exposed, they are almost constantly under attack, collecting vast amounts of data on current tools and techniques used by botnets and indiscriminate attackers.
+
+
+Here is the hands-on exercise formatted for your Obsidian vault, complete with the connection details, the detection techniques, and designated spaces for your screenshots.
+
+
+# Cowrie Honeypot: The Adversary Perspective
+
+## 1. Connecting to the Honeypot
+
+Cowrie can operate as either an SSH proxy (forwarding to a real VM) or a simulated shell. In this lab, the target is running the **simulated shell**. It is deliberately configured to allow easy entry.
+
+**Target Credentials:**
+* **IP Address:** `IP`
+* **Username:** `root`
+* **Password:** `<ANY>` *(The honeypot will accept literally any password to lure the attacker inside)*
+
+**Execution:**
+```bash
+ssh root@IP
+
+```
+
+screemshot
+
+---
+
+## 2. The Illusion (What Looks Real)
+
+At first glance, the emulated environment is highly convincing. It is designed to waste an attacker's time:
+
+* Most standard Linux commands (`ls`, `cd`, `cat`, `pwd`) behave exactly as you would expect.
+* The directory structure and files present are designed to perfectly match an empty **Ubuntu 18.04** server installation.
+
+---
+
+## 3. Breaking the Illusion (How to Detect Cowrie)
+
+Because this is a *medium-interaction* simulation and not a real operating system, an observant adversary can perform specific actions to reveal that it is a trap:
+
+* **Execution Limitations:** You cannot execute actual bash scripts. This is a hard limitation of the simulation engine.
+* **Default Fingerprints:** If the defender did not customize the deployment, it will mirror a Debian 5 installation and feature a hardcoded default user account named `Phil`.
+* **Hardware Anachronisms:** Querying the hardware (such as reading `/proc/cpuinfo`) will reveal references to a very outdated CPU, which is highly suspicious for a modern cloud server.
+
+screemshot
+
+```
